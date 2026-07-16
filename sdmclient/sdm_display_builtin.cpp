@@ -256,7 +256,7 @@ DisplayError SDMDisplayBuiltIn::PreValidateDisplay(bool *exit_validate) {
 
   // Apply current Color Mode and Render Intent.
   if (color_mode_->ApplyCurrentColorModeWithRenderIntent(
-          static_cast<bool>(layer_stack_.flags.hdr_present)) != kErrorNone) {
+          stc_hdr_present_) != kErrorNone) {
     // Fallback to GPU Composition, if Color Mode can't be applied.
     MarkLayersForClientComposition();
   }

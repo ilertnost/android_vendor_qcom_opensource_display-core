@@ -649,6 +649,7 @@ public:
   uint32_t num_configs_ = 0;
   int disable_hdr_handling_ = 0;  // disables HDR handling.
   int disable_sdr_histogram_ = 0; // disables handling of SDR histogram data.
+  bool stc_hdr_present_ = false;
   bool pending_commit_ = false;
 #ifdef XIAOMI_CWB_NOTIFY_SENSOR
   android::sp<clientRGBNotifier> client_rgb_notifier_;

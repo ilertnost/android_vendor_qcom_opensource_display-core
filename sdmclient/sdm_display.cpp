@@ -797,11 +797,15 @@ DisplayError SDMDisplay::Deinit() {
   return kErrorNone;
 }
 
+static bool IsHdrEotfLayerPresent(Layer *layer) {
+  return layer->input_buffer.dataspace.colorPrimaries ==
+             QtiColorPrimaries_BT2020 &&
+         (layer->input_buffer.dataspace.transfer == QtiTransfer_SMPTE_ST2084 ||
+          layer->input_buffer.dataspace.transfer == QtiTransfer_HLG);
+}
+
 static bool IsHDRLayerPresent(Layer *layer) {
-  if (layer->input_buffer.dataspace.colorPrimaries ==
-          QtiColorPrimaries_BT2020 &&
-      (layer->input_buffer.dataspace.transfer == QtiTransfer_SMPTE_ST2084 ||
-       layer->input_buffer.dataspace.transfer == QtiTransfer_HLG)) {
+  if (IsHdrEotfLayerPresent(layer)) {
     return true;
   } else if (IsExtendedRange(layer->input_buffer)) {
     // Treat input format FP16 with extended range as HDR layer
@@ -818,6 +822,7 @@ void SDMDisplay::BuildLayerStack() {
   layer_stack_.flags.layer_id_support = true;
   layer_stack_.solid_fill_enabled = solid_fill_enable_;
   layer_stack_.tonemapper_active = false;
+  stc_hdr_present_ = false;
   bool video_layer_updating = false;
   bool ui_layer_updating = false;
 
@@ -937,6 +942,12 @@ void SDMDisplay::BuildLayerStack() {
       // Dont honor HDR when its handling is disabled
       layer->input_buffer.flags.hdr = true;
       layer_stack_.flags.hdr_present = true;
+      // FP16 extended-range layers are used for Ultra HDR gain-map output.
+      // Keep them in the HDR composition path, but do not select a PQ/HLG
+      // post-blend STC profile for their sRGB transfer function.
+      if (IsHdrEotfLayerPresent(layer)) {
+        stc_hdr_present_ = true;
+      }
     }
 
     if (game_supported_ && (sdm_layer->GetType() == kLayerGame) && !hdr_layer) {
@@ -1065,6 +1076,7 @@ void SDMDisplay::BuildLayerStack() {
   DLOGV_IF(kTagClient, "layer_stack_.client_incompatible : %d",
            layer_stack_.client_incompatible);
   SDMDebugHandler::ATRACE_INT("HDRPresent ", layer_stack_.flags.hdr_present ? 1 : 0);
+  SDMDebugHandler::ATRACE_INT("STCHDRPresent ", stc_hdr_present_ ? 1 : 0);
   SDMDebugHandler::ATRACE_INT("FrontBufferPresent ",
                               layer_stack_.flags.front_buffer_layer_present ? 1 : 0);
 }
@@ -1072,6 +1084,7 @@ void SDMDisplay::BuildLayerStack() {
 void SDMDisplay::BuildSolidFillStack() {
   layer_stack_ = LayerStack();
   display_rect_ = LayerRect();
+  stc_hdr_present_ = false;
 
   layer_stack_.layers.push_back(solid_fill_layer_);
   layer_stack_.flags.geometry_changed = 1U;

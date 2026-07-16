@@ -154,7 +154,7 @@ DisplayError SDMDisplayPluggable::PreValidateDisplay(bool *exit_validate) {
 
   // Apply current Color Mode and Render Intent.
   status = color_mode_->ApplyCurrentColorModeWithRenderIntent(
-      static_cast<bool>(layer_stack_.flags.hdr_present));
+      stc_hdr_present_);
   if (status != kErrorNone || has_color_tranform_) {
     // Fallback to GPU Composition if Color Mode can't be applied or if a color
     // tranform needs to be applied.
