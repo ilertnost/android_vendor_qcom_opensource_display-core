@@ -271,6 +271,7 @@ struct DisplayConfigVariableInfo : public DisplayConfigGroupInfo {
   uint32_t fps = 0;               //!< Frame rate per second.
   uint32_t vsync_period_ns = 0;   //!< VSync period in nanoseconds.
   bool is_virtual_config = false;
+  bool is_auto_config = false;  //!< Physical panel mode with autonomous refresh rate switching.
   int32_t parent_config_index = -1;   //!< if virtual config, then corresponding panel config
   uint32_t early_ept_timeout = 0;     //!< Early EPT timeout value ns
 

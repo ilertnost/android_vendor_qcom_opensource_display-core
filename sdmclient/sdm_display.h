@@ -660,6 +660,8 @@ public:
   bool skip_commit_ = false;
   std::map<uint32_t, DisplayConfigVariableInfo> variable_config_map_;
   std::vector<uint32_t> sdm_config_map_;
+  Config auto_real_config_ = UINT_MAX;
+  DisplayConfigVariableInfo auto_config_info_ = {};
   bool client_connected_ = true;
   bool pending_config_ = false;
   bool has_client_composition_ = false;
@@ -726,6 +728,7 @@ public:
   bool IsVirtualConfig(Config config);
   DisplayError SetFBForExtendedResolution(Config config, bool *is_virtual_config_fps_switched);
   DisplayError FinalizeDisplayConfig(bool check_pending_config, Config new_config);
+  Config GetSDMRealConfig(Config config) const;
   DisplayError GetParentConfig(Config *config);
   bool NotifyIdleNow();
   bool NeedsSDMExtendedResolution();
