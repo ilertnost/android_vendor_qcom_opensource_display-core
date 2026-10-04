@@ -1585,6 +1585,13 @@ DisplayError SDMDisplayBuiltIn::CommitOrPrepare(
     HandleLargeCompositionHint(!needs_hint);
   }
 
+#ifdef XIAOMI_CWB_NOTIFY_SENSOR
+  if (current_power_mode_ == SDMPowerMode::POWER_MODE_ON &&
+      enable_cwb_notify_sensor_ && client_rgb_notifier_ != nullptr) {
+    client_rgb_notifier_->SendFrameUpdateSingnal(is_primary_);
+  }
+#endif
+
   prepare_phase_ = false;
 
   // Need a commit call to flush the dsi dynamic clock

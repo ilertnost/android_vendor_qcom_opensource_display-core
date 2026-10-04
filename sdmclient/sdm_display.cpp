@@ -582,6 +582,18 @@ DisplayError SDMDisplay::Init() {
     swap_interval_zero_ = true;
   }
 
+#ifdef XIAOMI_CWB_NOTIFY_SENSOR
+  if (type_ == kBuiltIn) {
+    int enable_cwb_notify_sensor = 0;
+    SDMDebugHandler::Get()->GetProperty(ENABLE_CWB_NOTIFY_SENSOR,
+                                        &enable_cwb_notify_sensor);
+    enable_cwb_notify_sensor_ = enable_cwb_notify_sensor;
+    if (enable_cwb_notify_sensor_) {
+      client_rgb_notifier_ = new clientRGBNotifier();
+    }
+  }
+#endif
+
   idle_active_ms_ = SDMDebugHandler::GetIdleTimeoutMs();
 
   client_target_ = new SDMLayer(id_, buffer_allocator_);

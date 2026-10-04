@@ -1,6 +1,9 @@
 cc_library_shared {
     name: "libsdmclient",
-    defaults: ["qtidisplay_defaults"],
+    defaults: [
+        "qtidisplay_defaults",
+        "xiaomi_cwb_notify_defaults",
+    ],
     sanitize: {
         integer_overflow: true,
     },

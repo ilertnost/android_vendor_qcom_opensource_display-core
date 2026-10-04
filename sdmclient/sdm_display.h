@@ -50,6 +50,9 @@
 #include <vector>
 #include <climits>
 
+#ifdef XIAOMI_CWB_NOTIFY_SENSOR
+#include "client_rgb_notifier.h"
+#endif
 #include "sdm_compositor_callbacks.h"
 #include "sdm_layer_builder.h"
 
@@ -647,6 +650,10 @@ public:
   int disable_hdr_handling_ = 0;  // disables HDR handling.
   int disable_sdr_histogram_ = 0; // disables handling of SDR histogram data.
   bool pending_commit_ = false;
+#ifdef XIAOMI_CWB_NOTIFY_SENSOR
+  android::sp<clientRGBNotifier> client_rgb_notifier_;
+  bool enable_cwb_notify_sensor_ = false;
+#endif
   bool is_cmd_mode_ = false;
   bool partial_update_enabled_ = false;
   bool skip_commit_ = false;
