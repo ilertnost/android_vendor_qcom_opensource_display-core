@@ -107,6 +107,7 @@
 #define DISABLE_FAST_PATH                    DISPLAY_PROP("disable_fast_path")
 #define DISABLE_SYSTEM_LOAD_CHECK            DISPLAY_PROP("disable_system_load_check")
 #define ASPECT_RATIO_THRESHOLD               DISPLAY_PROP("aspect_ratio_threshold")
+#define PANEL_DIM_IN_TENTH_MM                 DISPLAY_PROP("panel_dim_in_tenth_mm")
 #define ENABLE_BRIGHTNESS_DRM_PROP           DISPLAY_PROP("enable_brightness_drm_prop")
 // Disable microidle condition
 #define DISABLE_SINGLE_LM_SPLIT_PROP         DISPLAY_PROP("disable_single_lm_split")
