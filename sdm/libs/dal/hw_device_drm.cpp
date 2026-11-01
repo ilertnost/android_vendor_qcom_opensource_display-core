@@ -967,7 +967,7 @@ DisplayError HWDeviceDRM::PopulateDisplayAttributes(uint32_t index) {
 
   int panel_dim_in_tenth_mm = 0;
   Debug::GetProperty(PANEL_DIM_IN_TENTH_MM, &panel_dim_in_tenth_mm);
-  const FLOAT panel_dim_scale = panel_dim_in_tenth_mm ? 0.1f : 1.0f;
+  const float panel_dim_scale = panel_dim_in_tenth_mm ? 0.1f : 1.0f;
   display_attributes_[index].x_dpi =
       (FLOAT(mode.hdisplay) * 25.4f) / (FLOAT(mm_width) * panel_dim_scale);
   display_attributes_[index].y_dpi =
