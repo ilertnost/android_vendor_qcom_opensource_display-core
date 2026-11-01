@@ -742,17 +742,10 @@ void SDMDisplay::UpdateConfigs() {
 
   // For each config store the corresponding index which client understands.
   sdm_config_map_.resize(num_configs_);
-  auto_real_config_ = UINT_MAX;
-  auto_config_info_ = {};
 
   for (uint32_t i = 0; i < num_configs_; i++) {
     DisplayConfigVariableInfo info = {};
     GetDisplayAttributesForConfig(INT(i), &info);
-    if (info.is_auto_config) {
-      auto_real_config_ = i;
-      auto_config_info_ = info;
-      DLOGI("Registered physical auto config %u", i);
-    }
     bool config_exists = false;
     for (auto &config : variable_config_map_) {
       if (config.second == info) {
@@ -1360,8 +1353,10 @@ DisplayError SDMDisplay::GetActiveConfig(bool get_real_config, Config *out_confi
   } else {
     std::lock_guard<std::mutex> lock(active_config_lock_);
     if (pending_config_) {
-      *out_config = get_real_config ? GetSDMRealConfig(pending_config_index_)
-                                    : pending_config_index_;
+      *out_config = pending_config_index_;
+      if (get_real_config) {
+        GetParentConfig(out_config);
+      }
     } else {
       GetSDMActiveConfig(get_real_config, out_config);
     }
@@ -4107,15 +4102,6 @@ DisplayError SDMDisplay::GetSDMActiveConfig(bool get_real_config, Config *config
   if (error != kErrorNone) {
     return error;
   }
-
-  // The autonomous DRM mode advertises its maximum timing, while the requested client config
-  // remains the source of the logical vsync period exposed to SurfaceFlinger.
-  if (!get_real_config && real_config == auto_real_config_ &&
-      variable_config_map_.find(active_config_index_) != variable_config_map_.end() &&
-      GetSDMRealConfig(active_config_index_) == real_config) {
-    *config_index = active_config_index_;
-    return kErrorNone;
-  }
   *config_index = real_config;
 
   if (get_real_config) {
@@ -4207,8 +4193,8 @@ DisplayError SDMDisplay::FinalizeDisplayConfig(bool check_pending_config, Config
     return kErrorNone;
   }
 
-  const DisplayConfigVariableInfo &info = variable_config_map_[new_config];
-  Config new_real_config = GetSDMRealConfig(new_config);
+  auto &info = variable_config_map_[new_config];
+  Config new_real_config = (info.is_virtual_config) ? info.parent_config_index : new_config;
   Config current_real_config = 0;
   display_intf_->GetActiveConfig(&current_real_config);
   if (current_real_config != new_real_config) {
@@ -4242,31 +4228,6 @@ DisplayError SDMDisplay::FinalizeDisplayConfig(bool check_pending_config, Config
   }
 
   return kErrorNone;
-}
-
-Config SDMDisplay::GetSDMRealConfig(Config config) const {
-  const auto config_it = variable_config_map_.find(config);
-  if (config_it == variable_config_map_.end()) {
-    return config;
-  }
-
-  const DisplayConfigVariableInfo &info = config_it->second;
-  Config real_config = info.is_virtual_config ? info.parent_config_index : config;
-  if (type_ != kBuiltIn || auto_real_config_ == UINT_MAX ||
-      real_config == auto_real_config_) {
-    return real_config;
-  }
-
-  // Use the autonomous physical mode only for the matching maximum-rate client config.
-  // Lower-rate configs must keep their real timings so SurfaceFlinger sees the panel's
-  // actual vsync period (notably for 30 fps content).
-  const DisplayConfigGroupInfo &auto_group = auto_config_info_;
-  const DisplayConfigGroupInfo &requested_group = info;
-  if (auto_group == requested_group && info.fps == auto_config_info_.fps) {
-    return auto_real_config_;
-  }
-
-  return real_config;
 }
 
 // This function gives real config corresponding to virtual config, else no change in input.

@@ -930,14 +930,6 @@ DisplayError HWDeviceDRM::PopulateDisplayAttributes(uint32_t index) {
   display_attributes_[index].fps = mode.vrefresh;
   display_attributes_[index].vsync_period_ns =
     UINT32(1000000000L / display_attributes_[index].fps);
-  if (disp_type_ == DRMDisplayType::PERIPHERAL) {
-    int auto_mode_hskew = 0;
-    if (Debug::GetProperty(PRIMARY_AUTO_MODE_HSKEW_PROP, &auto_mode_hskew) == kErrorNone &&
-        auto_mode_hskew > 0 && mode.hskew == auto_mode_hskew) {
-      display_attributes_[index].is_auto_config = true;
-      DLOGI("Found primary auto mode with hskew %#x at index %u", auto_mode_hskew, index);
-    }
-  }
 
   /*
               Active                 Front           Sync           Back
@@ -1293,9 +1285,7 @@ void HWDeviceDRM::SetDisplaySwitchMode(uint32_t index) {
     panel_mode_changed_ = mode_flag;
   }
 
-  const uint32_t requested_mode_index = index;
-  for (uint32_t offset = 0; offset < connector_info_.modes.size(); offset++) {
-    uint32_t mode_index = (requested_mode_index + offset) % connector_info_.modes.size();
+  for (uint32_t mode_index = 0; mode_index < connector_info_.modes.size(); mode_index++) {
     if ((to_set.mode.vdisplay == connector_info_.modes[mode_index].mode.vdisplay) &&
         (to_set.mode.hdisplay == connector_info_.modes[mode_index].mode.hdisplay) &&
         (to_set.mode.vrefresh == connector_info_.modes[mode_index].mode.vrefresh) &&
@@ -1349,8 +1339,6 @@ void HWDeviceDRM::SetDisplaySwitchMode(uint32_t index) {
     current_mode.mode.vdisplay == to_set.mode.vdisplay) {
     seamless_mode_switch_ = true;
   }
-  DLOGI_IF(kTagDriverConfig, "Selected physical mode %u (hskew %#x)", current_mode_index_,
-           connector_info_.modes[current_mode_index_].mode.hskew);
 }
 
 DisplayError HWDeviceDRM::SetDisplayAttributes(uint32_t index) {
